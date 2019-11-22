@@ -91,3 +91,8 @@ function UpdatePage()
 
 	InitLinks();
 }
+
+function OnLoad()
+{
+	//window.location
+}
