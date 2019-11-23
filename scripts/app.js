@@ -100,5 +100,14 @@ function OnLoad()
 
 	var href = link.replace("spa/", "");
 
-	LinkClick(href);
+	if(href.split("/")[1] != "Main")
+	{
+		LinkClick(href);
+
+		page.body.innerHTML = "Loading...";
+	}
+	else
+	{
+		InitLinks();
+	}
 }
