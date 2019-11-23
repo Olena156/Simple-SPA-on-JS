@@ -1,5 +1,7 @@
 var links = null;
 
+const sitename = "http://localhost/spa/";
+
 var data = 
 { 
 	title: "", 
@@ -13,7 +15,8 @@ var page =
 	body: document.getElementById("body")
 };
 
-InitLinks();
+
+OnLoad();
 
 function SendRequest(query, link)
 {
@@ -57,13 +60,12 @@ function InitLinks()
 
 	for (var i = 0; i < links.length; i++) 
 	{
-		links[i].addEventListener("click", function (e) { e.preventDefault(); LinkClick(e.target);  return false;});
+		links[i].addEventListener("click", function (e) { e.preventDefault(); LinkClick(e.target.getAttribute("href"));  return false;});
 	}
 }
 
-function LinkClick(target)
+function LinkClick(href)
 {
-	var href = target.getAttribute("href");
 	var props = href.split("/");
 
 	switch(props[1])
@@ -94,5 +96,9 @@ function UpdatePage()
 
 function OnLoad()
 {
-	//window.location
+	var link = window.location.pathname;
+
+	var href = link.replace("spa/", "");
+
+	LinkClick(href);
 }
