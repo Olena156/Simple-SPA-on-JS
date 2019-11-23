@@ -1,56 +1,111 @@
-var links = null;
+var links = null; //Создаём переменную, в которой будут храниться ссылки
 
-const sitename = "http://localhost/spa/";
+var loaded = true; //Переменная, которая обозначает, загрузилась ли страница
 
-var loaded = true;
-
-var data = 
+var data = //Данные о странице
 { 
 	title: "", 
 	body: "", 
 	link: "" 
 };
 
-var page = 
+var page = //Элементы, текст в которых будет меняться
 {
 	title: document.getElementById("title"),
 	body: document.getElementById("body")
 };
 
-
+//По умолчанию в макете содержится контент для главной страницы. 
+//Но если пользователь перейдёт по ссылке, которая ведёт на какую-нибудь статью, это будет не то, что он ожидает увидеть.
+//Поэтому нужно проверить, на какой странице находится пользователь и загрузить релевантные данные.
 OnLoad();
+
+function OnLoad() 
+{
+	var link = window.location.pathname; //Ссылка страницы без домена
+
+	//У меня сайт находится по ссылке http://localhost/spa, поэтому мне нужно обрезать часть с spa/
+	var href = link.replace("spa/", ""); 
+
+	if(href.split("/")[1] != "Main" || href.split("/")[1] != "") //Обновляем страницу, только если она не главная.
+	{
+		LinkClick(href);
+
+		page.body.innerHTML = "Loading...";
+	}
+	else //Иначе просто инициализируем ссылки
+	{
+		InitLinks();
+	}
+}
+
+function InitLinks()
+{
+	links = document.getElementsByClassName("link_internal"); //Находим все ссылки на странице
+
+	for (var i = 0; i < links.length; i++) 
+	{
+		//Отключаем событие по умолчанию и вызываем функцию LinkClick
+		links[i].addEventListener("click", function (e) 
+		{ 
+			e.preventDefault(); 
+			LinkClick(e.target.getAttribute("href"));  
+			return false;
+		});
+	}
+}
+
+function LinkClick(href)
+{
+	var props = href.split("/"); //Получаем параметры из ссылки. 1 - раздел, 2 - идентификатор
+
+	switch(props[1])
+	{
+		case "Main": 
+			SendRequest("?page=main", href); //Отправляем запрос на сервер
+			break;
+
+		case "Articles":
+			if(props.length == 3 && !isNaN(props[2]) && Number(props[2]) > 0) //Проверяем валидность идентификатора и тоже отправляем запрос
+			{
+				SendRequest("?page=articles&id=" + props[2], href);
+			}
+			break;
+	}
+}
 
 function SendRequest(query, link)
 {
-	var xhr = new XMLHttpRequest();
+	var xhr = new XMLHttpRequest(); //Создаём объект для отправки запроса
 
-	xhr.open("GET", "/spa/core.php" + query, true);
+	xhr.open("GET", "/spa/core.php" + query, true); //Открываем соединение
 
-	xhr.onreadystatechange = function() 
+	xhr.onreadystatechange = function() //Указываем, что делать, когда будет получен ответ от сервера
 	{
-		loaded = true;
-		if (xhr.readyState != 4) return;
+		if (xhr.readyState != 4) return; //Если это не тот ответ, который нам нужен, ничего не делаем
 
-		if (xhr.status == 200) 
+		//Иначе говорим, что сайт загрузился
+		loaded = true;
+
+		if (xhr.status == 200) //Если ошибок нет, то получаем данные
 		{
 			GetData(JSON.parse(xhr.responseText), link);
 		} 
-		else 
+		else //Иначе выводим сообщение об ощибке
 		{
 			alert("Loading error! Try again later.");
 			console.log(xhr.status + ": " + xhr.statusText);
 		}
-
-
 	}
 
-	loaded = false;
+	loaded = false; //Говорим, что идёт загрузка
 
-	setTimeout(ShowLoading, 2000);
-	xhr.send();
+	//Устанавливаем таймер, который покажет сообщение о загрузке, если она не завершится через 2 секунды
+	setTimeout(ShowLoading, 2000); 
+	xhr.send(); //Отправляем запрос
 }
 
-function GetData(response, link)
+function GetData(response, link) //Получаем данные
 {
 	data = 
 	{
@@ -59,71 +114,25 @@ function GetData(response, link)
 		link: link 
 	};
 
-	UpdatePage();
+	UpdatePage(); //Обновляем контент на странице
 }
 
 function ShowLoading()
 {
-	if(!loaded)
+	if(!loaded) //Если страница ещё не загрузилась, то выводим сообщение о загрузке
 	{
 		page.body.innerHTML = "Loading...";
 	}
 }
 
-function InitLinks()
-{
-	links = document.getElementsByClassName("link_internal");
-
-	for (var i = 0; i < links.length; i++) 
-	{
-		links[i].addEventListener("click", function (e) { e.preventDefault(); LinkClick(e.target.getAttribute("href"));  return false;});
-	}
-}
-
-function LinkClick(href)
-{
-	var props = href.split("/");
-
-	switch(props[1])
-	{
-		case "Main":
-			SendRequest("?page=main", href);
-			break;
-
-		case "Articles":
-			if(props.length == 3 && !isNaN(props[2]) && Number(props[2]) > 0)
-			{
-				SendRequest("?page=articles&id=" + props[2], href);
-			}
-			break;
-	}
-}
-
-function UpdatePage()
+function UpdatePage() //Обновление контента
 {
 	page.title.innerText = data.title;
 	page.body.innerHTML = data.body;
 
 	document.title = data.title;
-	window.history.pushState(data.body, data.title, "/spa" + data.link);
+	window.history.pushState(data.body, data.title, "/spa" + data.link); //Меняем ссылку 
 
-	InitLinks();
+	InitLinks(); //Инициализируем новые ссылки
 }
 
-function OnLoad()
-{
-	var link = window.location.pathname;
-
-	var href = link.replace("spa/", "");
-
-	if(href.split("/")[1] != "Main")
-	{
-		LinkClick(href);
-
-		page.body.innerHTML = "Loading...";
-	}
-	else
-	{
-		InitLinks();
-	}
-}
