@@ -2,6 +2,8 @@ var links = null;
 
 const sitename = "http://localhost/spa/";
 
+var loaded = true;
+
 var data = 
 { 
 	title: "", 
@@ -25,20 +27,26 @@ function SendRequest(query, link)
 	xhr.open("GET", "/spa/core.php" + query, true);
 
 	xhr.onreadystatechange = function() 
-	{ 
+	{
+		loaded = true;
 		if (xhr.readyState != 4) return;
 
 		if (xhr.status == 200) 
 		{
-
 			GetData(JSON.parse(xhr.responseText), link);
 		} 
 		else 
 		{
+			alert("Loading error! Try again later.");
 			console.log(xhr.status + ": " + xhr.statusText);
 		}
+
+
 	}
 
+	loaded = false;
+
+	setTimeout(ShowLoading, 2000);
 	xhr.send();
 }
 
@@ -52,6 +60,14 @@ function GetData(response, link)
 	};
 
 	UpdatePage();
+}
+
+function ShowLoading()
+{
+	if(!loaded)
+	{
+		page.body.innerHTML = "Loading...";
+	}
 }
 
 function InitLinks()
