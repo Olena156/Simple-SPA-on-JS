@@ -27,16 +27,7 @@ function OnLoad()
 	//У меня сайт находится по ссылке http://localhost/spa, поэтому мне нужно обрезать часть с spa/
 	var href = link.replace("spa/", ""); 
 
-	if(href.split("/")[1] != "Main" || href.split("/")[1] != "") //Обновляем страницу, только если она не главная.
-	{
-		LinkClick(href);
-
-		page.body.innerHTML = "Loading...";
-	}
-	else //Иначе просто инициализируем ссылки
-	{
-		InitLinks();
-	}
+	LinkClick(href);
 }
 
 function InitLinks()
